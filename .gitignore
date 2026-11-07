@@ -1,0 +1,63 @@
+
+
+# Compiled objects and libraries
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.out
+
+# Executables (optional: uncomment if you use extensionless binaries)
+# /bin/
+
+# CMake build directories and generated files
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile.cmake
+compile_commands.json
+CTestTestfile.cmake
+Testing/
+_install/
+
+# Make
+.deps/
+*.d
+
+# Debugging
+core
+core.*
+*.core
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Coverage and profiling
+*.gcda
+*.gcno
+*.gcov
+coverage/
+lcov-report/
+
+# Clang / LLVM
+*.profraw
+*.profdata
+
+# Temporary files
+*.tmp
+*.log
