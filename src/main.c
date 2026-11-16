@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	traverse_tu(tu);
+	find_strcpy(tu);
 
 	// Cleanup
 	clang_disposeTranslationUnit(tu);
