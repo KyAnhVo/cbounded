@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "traversal.h"
+
 int main(int argc, char **argv)
 {
 	if (argc != 2) {
@@ -18,6 +20,8 @@ int main(int argc, char **argv)
 		clang_disposeIndex(index);
 		return 1;
 	}
+
+	traverse_tu(tu);
 
 	// Cleanup
 	clang_disposeTranslationUnit(tu);
