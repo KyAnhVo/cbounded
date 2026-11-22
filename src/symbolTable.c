@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define INVALID_INDEX SYMBOL_TABLE_SIZE + 1
+
 // ============================== Hash function =======================================
 
 /// hash then fold, FNV-1a.
@@ -36,6 +38,14 @@ void free_scope(struct SymbolScope *scope)
     free(scope);
 }
 
+void free_scope_recursive(struct SymbolScope *scope)
+{
+    if (scope != NULL) {
+        free_scope_recursive(scope->next);
+    }
+    free_scope(scope);
+}
+
 struct SymbolStack {
     struct SymbolScope *head;
     uint8_t max_scope;
@@ -43,13 +53,26 @@ struct SymbolStack {
     char symbol[NAME_MAX + 1];
 };
 
+void free_scope_stack(struct SymbolStack *stack)
+{
+    if (stack != NULL) {
+        free_scope_recursive(stack->head);
+    }
+    free(stack);
+}
+
 struct SymbolTableItem {
     char symbol[NAME_MAX + 1];
-    struct SymbolStack stack;
+    struct SymbolStack *stack;
     uint64_t hashed_val;
     bool used;
     bool deleted;
 };
+
+void free_symbol_table_item(struct SymbolTableItem *item)
+{
+    free_scope_stack(item->stack);
+}
 
 // =============================== Symbol table ==================================
 
@@ -60,7 +83,7 @@ struct SymbolTable {
 
     // Note: this array's 0th element is always SYMBOL_TABLE_SIZE. Do not need to account
     // for add/minus one or whatnot, at ith scope just use arr[i].
-    size_t scope_first_declared[MAX_NESTED_SCOPE_COUNT + 1];
+    struct SymbolStack *scope_first_declared[MAX_NESTED_SCOPE_COUNT + 1];
 };
 
 SymbolTable *symbolTable_create(void)
@@ -68,6 +91,7 @@ SymbolTable *symbolTable_create(void)
     SymbolTable *table = (SymbolTable *)xcalloc(
         sizeof(struct SymbolTable),
         "Memo ry issue, cannot allocate space for a new symbol table");
+
     table->scope = 1;
     return table;
 }
@@ -75,7 +99,6 @@ SymbolTable *symbolTable_create(void)
 void symbolTable_delete(SymbolTable *symbol_table)
 {
     free(symbol_table);
-    struct SymbolStack *
 }
 
 SymbolInfo symbolTable_lookup(SymbolTable *table, const char *symbol)
@@ -107,7 +130,7 @@ SymbolInfo symbolTable_lookup(SymbolTable *table, const char *symbol)
 
         if (strcmp(current->symbol, symbol) == 0) {
             // Note that in this case, head must exist
-            struct SymbolScope *head = current->stack.head;
+            struct SymbolScope *head = current->stack->head;
             info.lowerbound = head->lowerbound;
             info.upperbound = head->upperbound;
             snprintf(info.type, sizeof(info.type), "%s", head->type);
@@ -122,7 +145,7 @@ SymbolInfo symbolTable_lookup(SymbolTable *table, const char *symbol)
 void symbolTable_enter_scope(SymbolTable *table)
 {
     table->scope += 1;
-    table->scope_first_declared[table->scope] = SYMBOL_TABLE_SIZE;
+    table->scope_first_declared[table->scope] = NULL;
 }
 
 void symbolTable_exit_scope(SymbolTable *table)
