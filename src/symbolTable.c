@@ -74,6 +74,7 @@ static void symbolTableItem_free(struct SymbolTableItem *item)
     if (item != NULL) {
         symbolStack_free_scope(item->stack);
     }
+    free(item);
 }
 
 // =============================== Symbol table ==================================
