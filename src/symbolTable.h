@@ -25,11 +25,13 @@ void symbolTable_delete(SymbolTable *symbol_table);
 /// Creates an empty symbol table
 SymbolTable *symbolTable_create(void);
 
-/// Get the stack of the current symbol, if available then return the ptr. Else
+/// Get the current info of the current symbol
 ///
 /// @param table The symbol table we are working with
-/// @param symbol The symbol we want to delete// return null.
-SymbolInfo symbolTable_lookup(SymbolTable *, char *);
+/// @param symbol The symbol we want to look for
+/// @return the symbol we are looking for. If the symbol we
+///     are looking for does not exist, `SymbolInfo.scope == 0`.
+SymbolInfo symbolTable_lookup(SymbolTable *, const char *);
 
 /// Adds a symbol into the symbol table.
 ///
