@@ -13,7 +13,7 @@
 // ============================== Hash function =======================================
 
 /// hash then fold, FNV-1a.
-uint64_t hash_str(const char *symbol)
+static uint64_t hash_str(const char *symbol)
 {
     uint64_t h = 14695981039346656037ULL;
     const uint64_t fnv_prime = 1099511628211ULL;
@@ -33,17 +33,17 @@ struct SymbolScope {
     size_t next_declared_same_scope;
 };
 
-void free_scope(struct SymbolScope *scope)
+static void symbolScope_free(struct SymbolScope *scope)
 {
     free(scope);
 }
 
-void free_scope_recursive(struct SymbolScope *scope)
+static void symbolScope_free_recursive(struct SymbolScope *scope)
 {
     if (scope != NULL) {
-        free_scope_recursive(scope->next);
+        symbolScope_free_recursive(scope->next);
     }
-    free_scope(scope);
+    symbolScope_free(scope);
 }
 
 struct SymbolStack {
@@ -53,10 +53,10 @@ struct SymbolStack {
     char symbol[NAME_MAX + 1];
 };
 
-void free_scope_stack(struct SymbolStack *stack)
+static void symbolStack_free_scope(struct SymbolStack *stack)
 {
     if (stack != NULL) {
-        free_scope_recursive(stack->head);
+        symbolScope_free_recursive(stack->head);
     }
     free(stack);
 }
@@ -69,15 +69,17 @@ struct SymbolTableItem {
     bool deleted;
 };
 
-void free_symbol_table_item(struct SymbolTableItem *item)
+static void symbolTableItem_free(struct SymbolTableItem *item)
 {
-    free_scope_stack(item->stack);
+    if (item != NULL) {
+        symbolStack_free_scope(item->stack);
+    }
 }
 
 // =============================== Symbol table ==================================
 
 struct SymbolTable {
-    struct SymbolTableItem table[SYMBOL_TABLE_SIZE];
+    struct SymbolTableItem *table[SYMBOL_TABLE_SIZE];
     uint8_t size;
     uint8_t scope;
 
@@ -115,7 +117,7 @@ SymbolInfo symbolTable_lookup(SymbolTable *table, const char *symbol)
 
     for (size_t step = 0; step < SYMBOL_TABLE_SIZE - 1; step++) {
         size_t i = (start + step) & (SYMBOL_TABLE_SIZE - 1);
-        const struct SymbolTableItem *current = &(table->table[i]);
+        const struct SymbolTableItem *current = table->table[i];
 
         // If the slot is not used (not taken), then it is either
         // deleted (used before) or not. If it is not deleted before,
