@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
 
+# Default to clang (matches clangd's diagnostics). Must come before project().
+# Still overridable: `CC=gcc cmake -B build-gcc` or -DCMAKE_C_COMPILER=gcc.
+if(NOT DEFINED CMAKE_C_COMPILER AND NOT DEFINED ENV{CC})
+  set(CMAKE_C_COMPILER clang)
+endif()
+
 project(cbounded VERSION 0.1.0 LANGUAGES C)
 
 #Builds go in./ build(cmake - B build); refuse in - source builds.
@@ -21,7 +27,8 @@ find_package(Clang REQUIRED CONFIG)
 
 option(CBOUNDED_SANITIZE "Build everything with ASan + UBSan" OFF)
 if(CBOUNDED_SANITIZE)
-  add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
+  add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=all
+                      -fno-omit-frame-pointer)
   add_link_options(-fsanitize=address,undefined)
 endif()
 
