@@ -28,7 +28,13 @@ struct SymbolScope {
     char type[FILENAME_MAX + 1];
     int64_t lowerbound, upperbound;
     struct SymbolScope *next;
+    size_t next_declared_same_scope;
 };
+
+void free_scope(struct SymbolScope *scope)
+{
+    free(scope);
+}
 
 struct SymbolStack {
     struct SymbolScope *head;
@@ -51,13 +57,17 @@ struct SymbolTable {
     struct SymbolTableItem table[SYMBOL_TABLE_SIZE];
     uint8_t size;
     uint8_t scope;
+
+    // Note: this array's 0th element is always SYMBOL_TABLE_SIZE. Do not need to account
+    // for add/minus one or whatnot, at ith scope just use arr[i].
+    size_t scope_first_declared[MAX_NESTED_SCOPE_COUNT + 1];
 };
 
 SymbolTable *symbolTable_create(void)
 {
     SymbolTable *table = (SymbolTable *)xcalloc(
         sizeof(struct SymbolTable),
-        "Memory issue, cannot allocate space for a new symbol table");
+        "Memo ry issue, cannot allocate space for a new symbol table");
     table->scope = 1;
     return table;
 }
@@ -65,6 +75,7 @@ SymbolTable *symbolTable_create(void)
 void symbolTable_delete(SymbolTable *symbol_table)
 {
     free(symbol_table);
+    struct SymbolStack *
 }
 
 SymbolInfo symbolTable_lookup(SymbolTable *table, const char *symbol)
@@ -106,4 +117,14 @@ SymbolInfo symbolTable_lookup(SymbolTable *table, const char *symbol)
     }
 
     return info; // All tombstones and/or items
+}
+
+void symbolTable_enter_scope(SymbolTable *table)
+{
+    table->scope += 1;
+    table->scope_first_declared[table->scope] = SYMBOL_TABLE_SIZE;
+}
+
+void symbolTable_exit_scope(SymbolTable *table)
+{
 }
